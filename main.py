@@ -54,15 +54,15 @@ if __name__ == '__main__':
     client.subscribe(temperature_control_topic_cmd)
     client.loop_start()
 
-    heater_state = HeaterState.on
+    heater_state = HeaterState.off
     temperature_control_state = TemperatureControlState.off
 
-while True:
-    client.publish(temperature_topic_data, get_temperature())
-    client.publish(heater_state_topic_data, heater_state.value)
-    print("t: " + str(get_temperature()))
-    print("tcs: " + str(temperature_control_state.value))
-    print("hs: " + str(heater_state.value))
-    time.sleep(10)
+    while True:
+        client.publish(temperature_topic_data, get_temperature())
+        client.publish(heater_state_topic_data, heater_state.value)
+        print("t: " + str(get_temperature()))
+        print("tcs: " + str(temperature_control_state.value))
+        print("hs: " + str(heater_state.value))
+        time.sleep(10)
 
-# client.disconnect()
+    # client.disconnect()
