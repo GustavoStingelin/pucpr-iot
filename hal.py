@@ -8,7 +8,7 @@ class HeaterState(Enum):
 
 
 def get_temperature():
-    return random.randrange(20, 40, 10)
+    return random.randrange(20, 40, 1)
 
 
 def set_heater(state: HeaterState):
