@@ -30,17 +30,17 @@ def handle_heater_message(message):
     match msg[1]:
         case '1':
             temperature_control_state = TemperatureControlState.on
-            print("controle de temperatura LIGADO")
+            print("Controle de temperatura LIGADO")
             set_heater_state()
             client.publish(topic_response, msg[0])
         case '0':
             temperature_control_state = TemperatureControlState.off
-            print("controle de temperatura DESLIGADO")
+            print("Controle de temperatura DESLIGADO")
             set_heater_state()
             client.publish(topic_response, msg[0])
 
 
-def message_handler(client, user, message):
+def message_handler(client_id, user, message):
     match message.topic:
         case temperature_control_topic_cmd: handle_heater_message(message)
 
@@ -54,17 +54,18 @@ if __name__ == '__main__':
     client.subscribe(temperature_control_topic_cmd)
     client.loop_start()
 
-    heater_state = HeaterState.on
+    heater_state = HeaterState.off
     temperature_control_state = TemperatureControlState.off
+
 
     while True:
         temp = get_temperature()
-        #localHeater = heater_state.value
+        localHeater = heater_state.value
         client.publish(temperature_topic_data, temp, 0)
-        #client.publish(heater_state_topic_data, localHeater)
+        client.publish(heater_state_topic_data, localHeater)
         print("t: " + str(temp))
-        #print("tcs: " + str(temperature_control_state.value))
-        #print("hs: " + str(localHeater))
+        print("tcs: " + str(temperature_control_state.value))
+        print("hs: " + str(localHeater))
         time.sleep(10)
 
     # client.disconnect()
