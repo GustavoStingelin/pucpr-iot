@@ -4,7 +4,7 @@ from enum import Enum
 import paho.mqtt.client as mqtt
 
 from definitions import client_id, user, password, port, server, temperature_topic_data, \
-    temperature_control_topic_cmd, topic_response, heater_state_topic_data
+    temperature_control_topic_cmd, topic_response, expected_temp
 from hal import get_temperature, set_heater, HeaterState
 
 
@@ -14,14 +14,17 @@ class TemperatureControlState(Enum):
 
 
 def set_heater_state():
-    global temperature_control_state
+    global temperature_control_state, heater_state
     if temperature_control_state == TemperatureControlState.on:
-        if get_temperature() < 30:
-            set_heater(HeaterState.on)
+        if expected_temp > last_temp:
+            heater_state = HeaterState.on
+            set_heater(heater_state)
         else:
-            set_heater(HeaterState.off)
+            heater_state = HeaterState.off
+            set_heater(heater_state)
     else:
-        set_heater(HeaterState.off)
+        heater_state = HeaterState.off
+        set_heater(heater_state)
 
 
 def handle_heater_message(message):
@@ -29,13 +32,13 @@ def handle_heater_message(message):
     msg = message.payload.decode().split(',')
     match msg[1]:
         case '1':
+            print("ligando controle de temperatura")
             temperature_control_state = TemperatureControlState.on
-            print("controle de temperatura LIGADO")
             set_heater_state()
             client.publish(topic_response, msg[0])
         case '0':
+            print("desligando controle de temperatura")
             temperature_control_state = TemperatureControlState.off
-            print("controle de temperatura DESLIGADO")
             set_heater_state()
             client.publish(topic_response, msg[0])
 
@@ -54,17 +57,16 @@ if __name__ == '__main__':
     client.subscribe(temperature_control_topic_cmd)
     client.loop_start()
 
-    heater_state = HeaterState.on
+    heater_state = HeaterState.off
     temperature_control_state = TemperatureControlState.off
+    last_temp: int = None
 
     while True:
-        temp = get_temperature()
-        #localHeater = heater_state.value
-        client.publish(temperature_topic_data, temp, 0)
-        #client.publish(heater_state_topic_data, localHeater)
-        print("t: " + str(temp))
-        #print("tcs: " + str(temperature_control_state.value))
-        #print("hs: " + str(localHeater))
-        time.sleep(10)
+        last_temp = get_temperature(heater_state, last_temp)
+        print("temperatura: %.2fºC" % last_temp)
+        client.publish(temperature_topic_data, last_temp, 0)
+        time.sleep(0.3)
+        set_heater_state()
+        time.sleep(5)
 
-    # client.disconnect()
+    #client.disconnect()

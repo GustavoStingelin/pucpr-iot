@@ -6,6 +6,7 @@ port = 1883
 user = os.getenv('user')
 password = os.getenv('password')
 client_id = os.getenv('client_id')
+expected_temp = 30.0
 
 
 def topic_data(channel: str): return f"""v1/{user}/things/{client_id}/data/{channel}"""
